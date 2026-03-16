@@ -1,0 +1,5 @@
+- [x] mnemonic.h
+- [x] mn_wordlist.c
+- [x] mnemonic.c
+- [x] mnencode.c
+- [x] mndecode.c
