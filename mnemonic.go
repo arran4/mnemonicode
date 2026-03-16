@@ -13,33 +13,33 @@ import (
 )
 
 const (
-	MnBase       = 1626                 // cubic root of 2^32, rounded up
-	MnRemainder  = 7                    // extra words for 24 bit remainders
-	MnWords      = MnBase + MnRemainder // total number of words
-	MnWordBufLen = 25                   // size for a word buffer+headroom
+	base       = 1626             // cubic root of 2^32, rounded up
+	remainder  = 7                // extra words for 24 bit remainders
+	words      = base + remainder // total number of words
+	wordBufLen = 25               // size for a word buffer+headroom
 
-	MnEof = 0 // signal end to mn_decode_word_index
+	eof = 0 // signal end to mn_decode_word_index
 
 	// result codes for C-like API
-	MnOk         = 0
-	MnErem       = -1
-	MnEoverrun   = -2
-	MnEoverrun24 = -3
-	MnEindex     = -4
-	MnEindex24   = -5
-	MnEencoding  = -6
-	MnEword      = -7
-	MnEformat    = -8
+	ok         = 0
+	erem       = -1
+	eoverrun   = -2
+	eoverrun24 = -3
+	eindex     = -4
+	eindex24   = -5
+	eencoding  = -6
+	eword      = -7
+	eformat    = -8
 
-	MnFdefault        = "x-x-x--"
-	MnF64BitsPerLine  = " x-x-x--x-x-x\n"
-	MnF96BitsPerLine  = " x-x-x--x-x-x--x-x-x\n"
-	MnF128BitsPerLine = " x-x-x--x-x-x--x-x-x--x-x-x\n"
+	DefaultFormat        = "x-x-x--"
+	Format64BitsPerLine  = " x-x-x--x-x-x\n"
+	Format96BitsPerLine  = " x-x-x--x-x-x--x-x-x\n"
+	Format128BitsPerLine = " x-x-x--x-x-x--x-x-x--x-x-x\n"
 )
 
 // Idiomatic Go errors
 var (
-	ErrUnexpectedRemainder = errors.New("mnemonic: unexpected arithmetic remainder")
+	ErrUnexpectedremainder = errors.New("mnemonic: unexpected arithmetic remainder")
 	ErrBufferOverrun       = errors.New("mnemonic: output buffer overrun")
 	ErrOverrun24           = errors.New("mnemonic: data after 24 bit remainder")
 	ErrBadWordIndex        = errors.New("mnemonic: bad word index")
@@ -52,23 +52,23 @@ var (
 // CodeToError maps C-like error codes to Go errors.
 func CodeToError(code int) error {
 	switch code {
-	case MnOk:
+	case ok:
 		return nil
-	case MnErem:
-		return ErrUnexpectedRemainder
-	case MnEoverrun:
+	case erem:
+		return ErrUnexpectedremainder
+	case eoverrun:
 		return ErrBufferOverrun
-	case MnEoverrun24:
+	case eoverrun24:
 		return ErrOverrun24
-	case MnEindex:
+	case eindex:
 		return ErrBadWordIndex
-	case MnEindex24:
+	case eindex24:
 		return ErrUnexpected24BitRem
-	case MnEencoding:
+	case eencoding:
 		return ErrInvalidEncoding
-	case MnEword:
+	case eword:
 		return ErrUnrecognizedWord
-	case MnEformat:
+	case eformat:
 		return ErrBadFormat
 	default:
 		return fmt.Errorf("mnemonic: unknown error code %d", code)
@@ -80,8 +80,8 @@ func mnWordsRequired(size int) int {
 	return ((size + 1) * 3) / 4
 }
 
-// MnEncodeWordIndex performs one step of encoding binary data into words. Returns word index.
-func MnEncodeWordIndex(src []byte, srcsize int, n int) uint {
+// encodeWordIndex performs one step of encoding binary data into words. Returns word index.
+func encodeWordIndex(src []byte, srcsize int, n int) uint {
 	var x uint32 = 0
 	var offset int
 	var remaining int
@@ -106,26 +106,26 @@ func MnEncodeWordIndex(src []byte, srcsize int, n int) uint {
 	switch n % 3 {
 	case 2: // Third word of group
 		if remaining == 3 { // special case for 24 bits
-			extra = MnBase // use one of the 7 3-letter words
+			extra = base // use one of the 7 3-letter words
 		}
-		x /= (MnBase * MnBase)
+		x /= (base * base)
 	case 1: // Second word of group
-		x /= MnBase
+		x /= base
 	}
-	return uint((x % MnBase) + uint32(extra) + 1)
+	return uint((x % base) + uint32(extra) + 1)
 }
 
-// MnEncodeWord performs one step of encoding binary data into words. Returns word.
-func MnEncodeWord(src []byte, srcsize int, n int) string {
-	idx := MnEncodeWordIndex(src, srcsize, n)
+// encodeWord performs one step of encoding binary data into words. Returns word.
+func encodeWord(src []byte, srcsize int, n int) string {
+	idx := encodeWordIndex(src, srcsize, n)
 	if idx == 0 || int(idx) >= len(mnWords) {
 		return ""
 	}
 	return mnWords[idx]
 }
 
-// MnNextWordIndex performs one step of decoding a string into word indices.
-func MnNextWordIndex(ptr *string) uint {
+// nextWordIndex performs one step of decoding a string into word indices.
+func nextWordIndex(ptr *string) uint {
 	s := *ptr
 	var wordbuf bytes.Buffer
 	i := 0
@@ -138,7 +138,7 @@ func MnNextWordIndex(ptr *string) uint {
 	wordstart := s
 
 	i = 0
-	for i < len(s) && unicode.IsLetter(rune(s[i])) && wordbuf.Len() < MnWordBufLen-1 {
+	for i < len(s) && unicode.IsLetter(rune(s[i])) && wordbuf.Len() < wordBufLen-1 {
 		c := s[i]
 		i++
 		wordbuf.WriteByte(byte(unicode.ToLower(rune(c))))
@@ -165,7 +165,7 @@ func MnNextWordIndex(ptr *string) uint {
 		return 0 // EOF, no word found
 	}
 
-	for idx := 1; idx <= MnWords; idx++ {
+	for idx := 1; idx <= words; idx++ {
 		if mnWords[idx] == wordStr {
 			*ptr = s
 			return uint(idx)
@@ -176,8 +176,8 @@ func MnNextWordIndex(ptr *string) uint {
 	return 0
 }
 
-// MnDecodeWordIndex performs one step of decoding a sequence of words into binary data.
-func MnDecodeWordIndex(index uint, dest []byte, destsize int, offset *int) int {
+// decodeWordIndex performs one step of decoding a sequence of words into binary data.
+func decodeWordIndex(index uint, dest []byte, destsize int, offset *int) int {
 	var x uint32
 	var groupofs int
 	var i int
@@ -186,18 +186,18 @@ func MnDecodeWordIndex(index uint, dest []byte, destsize int, offset *int) int {
 		return *offset
 	}
 
-	if index > MnWords {
-		*offset = MnEindex
+	if index > words {
+		*offset = eindex
 		return *offset
 	}
 
 	if *offset > destsize {
-		*offset = MnEoverrun
+		*offset = eoverrun
 		return *offset
 	}
 
-	if index > MnBase && *offset%4 != 2 {
-		*offset = MnEindex24
+	if index > base && *offset%4 != 2 {
+		*offset = eindex24
 		return *offset
 	}
 
@@ -209,31 +209,31 @@ func MnDecodeWordIndex(index uint, dest []byte, destsize int, offset *int) int {
 		}
 	}
 
-	if index == MnEof {
+	if index == eof {
 		switch *offset % 4 {
 		case 3:
-			return MnOk
+			return ok
 		case 2:
 			if x <= 0xFFFF {
-				return MnOk
+				return ok
 			} else {
-				*offset = MnErem
+				*offset = erem
 				return *offset
 			}
 		case 1:
 			if x <= 0xFF {
-				return MnOk
+				return ok
 			} else {
-				*offset = MnErem
+				*offset = erem
 				return *offset
 			}
 		case 0:
-			return MnOk
+			return ok
 		}
 	}
 
 	if *offset == destsize {
-		*offset = MnEoverrun
+		*offset = eoverrun
 		return *offset
 	}
 
@@ -241,22 +241,22 @@ func MnDecodeWordIndex(index uint, dest []byte, destsize int, offset *int) int {
 
 	switch *offset % 4 {
 	case 3:
-		*offset = MnEoverrun24
+		*offset = eoverrun24
 		return *offset
 	case 2:
-		if index >= MnBase {
-			x += uint32(index-MnBase) * MnBase * MnBase
+		if index >= base {
+			x += uint32(index-base) * base * base
 			(*offset)++
 		} else {
 			if index >= 1625 || (index == 1624 && x > 1312671) {
-				*offset = MnEencoding
+				*offset = eencoding
 				return *offset
 			}
-			x += uint32(index) * MnBase * MnBase
+			x += uint32(index) * base * base
 			(*offset) += 2
 		}
 	case 1:
-		x += uint32(index) * MnBase
+		x += uint32(index) * base
 		(*offset)++
 	case 0:
 		x = uint32(index)
@@ -269,13 +269,13 @@ func MnDecodeWordIndex(index uint, dest []byte, destsize int, offset *int) int {
 			x /= 256
 		}
 	}
-	return MnOk
+	return ok
 }
 
-// MnEncode encodes a binary data buffer into a sequence of words.
-func MnEncode(src []byte, srcsize int, dest []byte, destsize int, format string) int {
+// EncodeWithDest encodes a binary data buffer into a sequence of words.
+func EncodeWithDest(src []byte, srcsize int, dest []byte, destsize int, format string) int {
 	if format == "" {
-		format = MnFdefault
+		format = DefaultFormat
 	}
 
 	fmtStr := format
@@ -290,12 +290,12 @@ func MnEncode(src []byte, srcsize int, dest []byte, destsize int, format string)
 		}
 
 		if destIdx >= destsize {
-			return MnEoverrun
+			return eoverrun
 		}
 
 		if fmtIdx >= len(fmtStr) {
 			if len(fmtStr) > 0 && unicode.IsLetter(rune(fmtStr[len(fmtStr)-1])) && unicode.IsLetter(rune(format[0])) {
-				return MnEformat
+				return eformat
 			}
 			fmtIdx = 0
 			for destIdx < destsize && fmtIdx < len(fmtStr) && !unicode.IsLetter(rune(fmtStr[fmtIdx])) {
@@ -304,13 +304,13 @@ func MnEncode(src []byte, srcsize int, dest []byte, destsize int, format string)
 				fmtIdx++
 			}
 			if fmtIdx < len(fmtStr) && !unicode.IsLetter(rune(fmtStr[fmtIdx])) {
-				return MnEformat
+				return eformat
 			}
 		}
 
-		word := MnEncodeWord(src, srcsize, n)
+		word := encodeWord(src, srcsize, n)
 		if word == "" {
-			return MnEoverrun // shouldn't happen, actually
+			return eoverrun // shouldn't happen, actually
 		}
 
 		for fmtIdx < len(fmtStr) && unicode.IsLetter(rune(fmtStr[fmtIdx])) {
@@ -326,35 +326,35 @@ func MnEncode(src []byte, srcsize int, dest []byte, destsize int, format string)
 	}
 	if destIdx < destsize {
 		dest[destIdx] = 0 // null terminate
-		// don't increment destIdx if we want to return MnOk but wait:
-		// the previous code was "if destIdx < destsize { dest[destIdx] = 0; destIdx++ } else return MnEoverrun; return destIdx - 1"
+		// don't increment destIdx if we want to return ok but wait:
+		// the previous code was "if destIdx < destsize { dest[destIdx] = 0; destIdx++ } else return eoverrun; return destIdx - 1"
 		// The original C code returns MN_OK (0). Let's return MN_OK.
 		dest[destIdx] = 0
 	} else {
-		return MnEoverrun
+		return eoverrun
 	}
-	return MnOk
+	return ok
 }
 
-// MnDecode decodes a text representation in string src to binary buffer dest.
-func MnDecode(src string, dest []byte, destsize int) int {
+// DecodeWithDest decodes a text representation in string src to binary buffer dest.
+func DecodeWithDest(src string, dest []byte, destsize int) int {
 	var index uint
 	offset := 0
 	var status int
 
 	ptr := src
 	for {
-		index = MnNextWordIndex(&ptr)
+		index = nextWordIndex(&ptr)
 		if index == 0 {
 			break
 		}
-		MnDecodeWordIndex(index, dest, destsize, &offset)
+		decodeWordIndex(index, dest, destsize, &offset)
 	}
 
 	if ptr != "" {
-		return MnEword
+		return eword
 	}
-	status = MnDecodeWordIndex(MnEof, dest, destsize, &offset)
+	status = decodeWordIndex(eof, dest, destsize, &offset)
 	if status < 0 {
 		return status
 	}
@@ -364,12 +364,11 @@ func MnDecode(src string, dest []byte, destsize int) int {
 // ---- Idiomatic Go API ----
 
 // Encode encodes a byte slice into a mnemonic string using the given format.
-// If format is empty, MnFdefault is used.
+// If format is empty, DefaultFormat is used.
 func Encode(src []byte, format string) (string, error) {
 	if format == "" {
-		format = MnFdefault
+		format = DefaultFormat
 	}
-
 
 	// We'll reimplement it more idiomatically and efficiently:
 	var sb strings.Builder
@@ -396,7 +395,7 @@ func Encode(src []byte, format string) (string, error) {
 			}
 		}
 
-		word := MnEncodeWord(src, len(src), n)
+		word := encodeWord(src, len(src), n)
 		if word == "" {
 			return "", ErrBufferOverrun // Or a more appropriate error
 		}
@@ -416,7 +415,7 @@ func Decode(src string) ([]byte, error) {
 	ptr := src
 	wordCount := 0
 	for {
-		idx := MnNextWordIndex(&ptr)
+		idx := nextWordIndex(&ptr)
 		if idx == 0 {
 			break
 		}
@@ -430,7 +429,7 @@ func Decode(src string) ([]byte, error) {
 	maxSize := ((wordCount * 4) / 3) + 4
 	dest := make([]byte, maxSize)
 
-	n := MnDecode(src, dest, len(dest))
+	n := DecodeWithDest(src, dest, len(dest))
 	if n < 0 {
 		return nil, CodeToError(n)
 	}
@@ -452,7 +451,7 @@ type Encoder struct {
 // NewEncoder returns a new Encoder that writes to w using the given format.
 func NewEncoder(w io.Writer, format string) *Encoder {
 	if format == "" {
-		format = MnFdefault
+		format = DefaultFormat
 	}
 	return &Encoder{w: w, format: format}
 }

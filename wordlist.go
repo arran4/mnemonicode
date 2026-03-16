@@ -1,4 +1,3 @@
-// TODO: port complete
 package mnemonic
 
 // WordlistVersion is the version of the mnemonic wordlist

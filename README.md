@@ -1,4 +1,4 @@
-# mnemonicode
+# go-mnemonicode
 
 A Go implementation of the mnemonic encoding method.
 
@@ -6,12 +6,16 @@ These routines implement a method for encoding binary data into a sequence
 of words which can be spoken over the phone, for example, and converted
 back to data on the other side.
 
-For more information see <http://web.archive.org/web/20101031205747/http://www.tothink.com/mnemonic/>
+This package provides a standalone, idiomatic Go library while preserving
+exact algorithm and output compatibility with the original C implementation
+of Mnemonicode.
+
+For more information on Mnemonicode, see <http://web.archive.org/web/20101031205747/http://www.tothink.com/mnemonic/>
 
 ## Installation
 
 ```sh
-go get github.com/singpolyma/mnemonicode
+go get github.com/arran4/go-mnemonicode
 ```
 
 ## Usage
@@ -25,12 +29,13 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/singpolyma/mnemonicode" // Note: the module name might be just "mnemonic" locally
+	"github.com/arran4/go-mnemonicode"
 )
 
 func main() {
 	// Encoding
 	data := []byte("hello")
+	// An empty format string will use the default format: "x-x-x--"
 	encoded, err := mnemonic.Encode(data, "")
 	if err != nil {
 		log.Fatal(err)
@@ -51,8 +56,41 @@ func main() {
 You can also use the `io.Reader` and `io.Writer` interfaces:
 
 ```go
-// Using NewEncoder and NewDecoder
-// Note: mnemonic encoding requires chunking bytes in groups of 4 or knowing the full length
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"log"
+
+	"github.com/arran4/go-mnemonicode"
+)
+
+func main() {
+	var buf bytes.Buffer
+	enc := mnemonic.NewEncoder(&buf, "")
+
+	// Write data to the encoder
+	enc.Write([]byte("hello "))
+	enc.Write([]byte("world"))
+
+	// Close the encoder to finalize the encoding
+	if err := enc.Close(); err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Encoded stream:", buf.String())
+
+	// Read and decode the stream
+	dec := mnemonic.NewDecoder(&buf)
+	decoded, err := io.ReadAll(dec)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Decoded stream:", string(decoded))
+}
 ```
 
 ### Command Line Tools
@@ -60,6 +98,28 @@ You can also use the `io.Reader` and `io.Writer` interfaces:
 You can install the command line tools:
 
 ```sh
-go install github.com/singpolyma/mnemonicode/cmd/mnencode@latest
-go install github.com/singpolyma/mnemonicode/cmd/mndecode@latest
+go install github.com/arran4/go-mnemonicode/cmd/mnencode@latest
+go install github.com/arran4/go-mnemonicode/cmd/mndecode@latest
+```
+
+**Usage:**
+
+Encode data to mnemonic:
+```sh
+echo -n "hello" | mnencode
+```
+
+Encode hex data:
+```sh
+echo -n "68656c6c6f" | mnencode -x
+```
+
+Decode mnemonic:
+```sh
+echo -n "square-angel-stone--carlo" | mndecode
+```
+
+Decode mnemonic to hex:
+```sh
+echo -n "square-angel-stone--carlo" | mndecode -x
 ```
