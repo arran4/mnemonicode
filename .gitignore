@@ -1,3 +1,25 @@
-*.o
-mnencode
-mndecode
+# Packages
+.packages
+.dart_tool/
+
+# Directories created by pub
+.buildlog/
+.pub/
+build/
+
+# Files created by pub
+pubspec.lock
+
+# IDE/editor specific
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+.history/
+*.swp
+*.swo
+.DS_Store
