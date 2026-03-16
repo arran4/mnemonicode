@@ -1,0 +1,11 @@
+name: dart_mnemonicode
+description: A Dart port of the original mnemonicode project, providing a method for encoding binary data into a sequence of easily spoken words.
+version: 1.0.0
+homepage: https://github.com/singpolyma/mnemonicode
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dev_dependencies:
+  lints: ^3.0.0
+  test: ^1.24.0

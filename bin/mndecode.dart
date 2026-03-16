@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'mnemonic.dart';
+import 'package:dart_mnemonicode/src/mnemonic.dart';
 
 void main(List<String> args) {
   bool hexEncodedOutput = false;

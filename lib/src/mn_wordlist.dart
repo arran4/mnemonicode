@@ -1,3 +1,4 @@
+/// Wordlist ver 0.7
 const String mn_wordlist_version = " Wordlist ver 0.7";
 
 const List<String> mn_words = [

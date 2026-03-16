@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'mnemonic.dart';
-import 'mn_wordlist.dart';
+import 'package:dart_mnemonicode/src/mnemonic.dart';
+import 'package:dart_mnemonicode/src/mn_wordlist.dart';
 
 bool isXDigit(int c) {
   return (c >= 48 && c <= 57) || // 0-9
