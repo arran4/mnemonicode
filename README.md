@@ -36,14 +36,14 @@ func main() {
 	// Encoding
 	data := []byte("hello")
 	// An empty format string will use the default format: "x-x-x--"
-	encoded, err := mnemonic.Encode(data, "")
+	encoded, err := mnemonicode.Encode(data, "")
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("Encoded:", encoded)
 
 	// Decoding
-	decoded, err := mnemonic.Decode(encoded)
+	decoded, err := mnemonicode.Decode(encoded)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -69,7 +69,7 @@ import (
 
 func main() {
 	var buf bytes.Buffer
-	enc := mnemonic.NewEncoder(&buf, "")
+	enc := mnemonicode.NewEncoder(&buf, "")
 
 	// Write data to the encoder
 	enc.Write([]byte("hello "))
@@ -83,7 +83,7 @@ func main() {
 	fmt.Println("Encoded stream:", buf.String())
 
 	// Read and decode the stream
-	dec := mnemonic.NewDecoder(&buf)
+	dec := mnemonicode.NewDecoder(&buf)
 	decoded, err := io.ReadAll(dec)
 	if err != nil {
 		log.Fatal(err)
@@ -98,28 +98,27 @@ func main() {
 You can install the command line tools:
 
 ```sh
-go install github.com/arran4/go-mnemonicode/cmd/mnencode@latest
-go install github.com/arran4/go-mnemonicode/cmd/mndecode@latest
+go install github.com/arran4/go-mnemonicode/cmd/go-mnemonic@latest
 ```
 
 **Usage:**
 
 Encode data to mnemonic:
 ```sh
-echo -n "hello" | mnencode
+echo -n "hello" | go-mnemonic encode
 ```
 
 Encode hex data:
 ```sh
-echo -n "68656c6c6f" | mnencode -x
+echo -n "68656c6c6f" | go-mnemonic encode -x
 ```
 
 Decode mnemonic:
 ```sh
-echo -n "square-angel-stone--carlo" | mndecode
+echo -n "square-angel-stone--carlo" | go-mnemonic decode
 ```
 
 Decode mnemonic to hex:
 ```sh
-echo -n "square-angel-stone--carlo" | mndecode -x
+echo -n "square-angel-stone--carlo" | go-mnemonic decode -x
 ```

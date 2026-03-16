@@ -1,0 +1,6 @@
+github.com/arran4/go-subcommand v0.0.20 h1:AJwgW6mv8W3eUZvLRAe0MNhM+ZBRp2IEsgn6dmeU5Uo=
+github.com/arran4/go-subcommand v0.0.20/go.mod h1:r+vGI8hlpI9WjAELbdcoQPolJIzq+IUiLnklZIOGCiw=
+golang.org/x/mod v0.31.0 h1:HaW9xtz0+kOcWKwli0ZXy79Ix+UW/vOfmWI5QVd2tgI=
+golang.org/x/mod v0.31.0/go.mod h1:43JraMp9cGx1Rx3AqioxrbrhNsLl2l/iNAvuBkrezpg=
+golang.org/x/text v0.32.0 h1:ZD01bjUt1FQ9WJ0ClOL5vxgxOI/sVCNgX1YtKwcY0mU=
+golang.org/x/text v0.32.0/go.mod h1:o/rUWzghvpD5TXrTIBuJU77MTaN0ljMWE47kxGJQ7jY=
